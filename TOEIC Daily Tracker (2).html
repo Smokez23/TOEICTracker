@@ -1,0 +1,654 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>TOEIC Daily Tracker</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky tab bar over a single working column; OMR answer-sheet bubbles are the signature detail. */
+:root{
+  --bg:#F2F5FA; --surface:#FFFFFF; --ink:#0F1B33; --muted:#5A6781; --line:#D8E0EC;
+  --accent:#2447F5; --accent-ink:#FFFFFF; --accent-soft:#E4EAFF;
+  --mark:#FFE14A; --mark-ink:#2A2300;
+  --good:#12805C; --good-soft:#DDF3EA; --bad:#C2302A; --bad-soft:#FBE3E1;
+  --c-grammar:#2447F5; --c-wordform:#7A5CFA; --c-vocab:#0F9C78; --c-part6:#E8781A; --c-part7:#E2487A;
+  --hero-a:#0E1B52; --hero-b:#2447F5; --ban-a:#0F7A58; --ban-b:#2447F5;
+  --font:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1120; --surface:#141C30; --ink:#E8EDF8; --muted:#94A1BD; --line:#26324F;
+  --accent:#7F99FF; --accent-ink:#0B1120; --accent-soft:#1C2850;
+  --mark:#F2D13A; --mark-ink:#241E00;
+  --good:#46D3A0; --good-soft:#12342B; --bad:#FF8078; --bad-soft:#3A1B1D;
+  --c-grammar:#7F99FF; --c-wordform:#A18CFF; --c-vocab:#3CCB9F; --c-part6:#FF9A4D; --c-part7:#FF7BA3;
+  --hero-a:#101A44; --hero-b:#2B40BC; --ban-a:#0E6B4C; --ban-b:#2B40BC; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0B1120; --surface:#141C30; --ink:#E8EDF8; --muted:#94A1BD; --line:#26324F;
+  --accent:#7F99FF; --accent-ink:#0B1120; --accent-soft:#1C2850;
+  --mark:#F2D13A; --mark-ink:#241E00;
+  --good:#46D3A0; --good-soft:#12342B; --bad:#FF8078; --bad-soft:#3A1B1D;
+  --c-grammar:#7F99FF; --c-wordform:#A18CFF; --c-vocab:#3CCB9F; --c-part6:#FF9A4D; --c-part7:#FF7BA3;
+  --hero-a:#101A44; --hero-b:#2B40BC; --ban-a:#0E6B4C; --ban-b:#2B40BC; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;background-image:radial-gradient(700px 260px at 90% -40px,color-mix(in srgb,var(--accent) 12%,transparent),transparent);background-repeat:no-repeat}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
+.wrap{max-width:880px;margin:0 auto}
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.bar-in{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:16px;min-height:52px}
+.brand{font-weight:700;letter-spacing:.01em;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:18px;height:18px;border-radius:50%;background:conic-gradient(var(--c-grammar),var(--c-wordform),var(--c-part7),var(--c-part6),var(--c-vocab),var(--c-grammar));box-shadow:inset 0 0 0 5px var(--surface)}
+header.bar::after{content:"";display:block;height:3px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));background:linear-gradient(90deg,var(--c-grammar),var(--c-wordform),var(--c-part7),var(--c-part6),var(--c-vocab))}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0;flex:1}
+nav::-webkit-scrollbar{display:none}
+nav a{color:var(--muted);text-decoration:none;padding:14px 10px;white-space:nowrap;font-weight:500;border-bottom:3px solid transparent;position:relative}
+nav a[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav a .dot{position:absolute;top:10px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--mark);box-shadow:0 0 0 1.5px var(--surface)}
+a:focus-visible,button:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+main{padding-top:24px;display:grid;gap:20px}
+h1{font-size:clamp(24px,5vw,34px);line-height:1.25;margin:0;text-wrap:balance}
+h2{font-size:19px;margin:0 0 4px;text-wrap:balance}
+h3{font-size:15px;margin:0}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.stack{display:grid;gap:12px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.row.sp{justify-content:space-between}
+button,.btn{font:600 15px/1 var(--font);border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 16px;cursor:pointer;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.pill{display:inline-block;font:500 12px/1 var(--mono);padding:5px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--mark);color:var(--mark-ink)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.big{font:600 clamp(34px,8vw,52px)/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* gauge */
+.gauge{position:relative;height:56px;margin:26px 0 8px}
+.gauge .track{position:absolute;left:0;right:0;top:24px;height:10px;border-radius:99px;background:var(--line)}
+.gauge .fill{position:absolute;left:0;top:24px;height:10px;border-radius:99px;background:var(--accent)}
+.gauge .band{position:absolute;top:18px;height:22px;background:var(--mark);border-radius:4px;opacity:.95}
+.gauge .tag{position:absolute;top:0;transform:translateX(-50%);font:500 11px/1 var(--mono);white-space:nowrap}
+.gauge .tag.t{color:var(--muted);top:42px}
+.gauge .me{position:absolute;top:19px;width:20px;height:20px;border-radius:50%;background:var(--surface);border:4px solid var(--accent);transform:translateX(-50%)}
+/* quiz */
+.qhead{position:sticky;top:calc(52px + env(safe-area-inset-top,0px));z-index:10;background:var(--bg);padding:10px 0;display:grid;gap:8px}
+.prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog>div{height:100%;background:var(--accent);transition:width .25s}
+.qsplit{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:860px){.qsplit.has-pass{grid-template-columns:1fr 1fr;align-items:start}.qsplit .pass{position:sticky;top:130px;max-height:calc(100vh - 150px);overflow:auto}}
+.pass{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14.5px;line-height:1.7;min-width:0}
+.blank{white-space:nowrap;background:var(--mark);color:var(--mark-ink);padding:0 4px;border-radius:3px;font-family:var(--mono);font-size:13px}
+.tg{display:grid;gap:4px;justify-content:start;text-align:left;padding:16px;min-height:96px;align-content:start}
+.tg[aria-pressed="true"],.tgb[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.tbl{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}.tbl th{text-align:left;font:500 12px var(--mono);color:var(--muted);padding:8px;white-space:nowrap}.tbl td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:top}
+.qtext{font-size:17px;line-height:1.6;margin:8px 0 16px;min-width:0;overflow-wrap:anywhere}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:14px;align-items:center;text-align:left;width:100%;font-weight:500;padding:12px 14px;line-height:1.45;min-height:52px;justify-content:flex-start;background:var(--surface)}
+.opt .bub{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center;font:500 13px/1 var(--mono);color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] .bub{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.right .bub{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .bub{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.expl{border-left:4px solid var(--mark);padding:10px 14px;background:var(--bg);border-radius:0 8px 8px 0}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px}
+.palette button{padding:0;min-height:38px;font:500 13px var(--mono)}
+.palette button.ans{background:var(--accent-soft);border-color:var(--accent)}
+.palette button.cur{outline:3px solid var(--mark);outline-offset:1px}
+/* bars */
+.bars{display:grid;gap:12px}
+.bar2{display:grid;grid-template-columns:minmax(90px,150px) 1fr 44px;gap:10px;align-items:center;font-size:14px}
+.bar2 .t{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar2 .t>i{display:block;height:100%}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:340px}
+.heat i{aspect-ratio:1;border-radius:4px;background:var(--line);display:block}
+.heat i.l1{background:var(--accent-soft);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.heat i.l2{background:var(--accent);opacity:.65}
+.heat i.l3{background:var(--accent)}
+svg text{fill:var(--muted);font:11px var(--mono)}
+svg .gl{stroke:var(--line);stroke-width:1}
+svg .bandr{fill:var(--mark);opacity:.9}
+svg .ln{stroke:var(--accent);stroke-width:2.5;fill:none}
+svg .pt{fill:var(--surface);stroke:var(--accent);stroke-width:3}
+.chart{overflow-x:auto}
+.notice{padding:12px 14px;border-radius:8px;background:var(--accent-soft);color:var(--ink);font-size:14px}
+.notice.warn{background:var(--bad-soft)}
+.list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.list li{display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0;padding-top:0}
+.tick{display:grid;grid-template-columns:22px 1fr;gap:10px}
+.tick b{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px}
+.tick.done b{background:var(--good);border-color:var(--good);color:var(--surface)}
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-radius:14px;padding:24px;background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;right:-70px;top:-90px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(255,210,63,.38),transparent 65%)}
+.hero>*{position:relative;min-width:0}
+.hero h1{color:#fff}.hero .muted{color:rgba(255,255,255,.86)}.hero .label{color:rgba(255,255,255,.78)}
+.hero button.ghost{color:#fff;border:1px solid rgba(255,255,255,.45);min-height:32px;padding:4px 10px;font-size:13px}
+.hero-art{width:min(240px,34vw);height:auto}
+.ico{flex:none;display:block}
+.steps{display:flex;gap:3px;align-items:flex-end;height:22px}
+.steps i{width:8px;border-radius:2px;background:var(--line)}.steps i.on{background:var(--c)}
+.pill.cat{background:color-mix(in srgb,var(--c,var(--accent)) 14%,var(--surface));color:var(--ink)}
+.pill.cat::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c);margin-right:6px}
+.qcard{border-top:4px solid var(--c)}
+.bar2 .t>i{background:var(--c,var(--accent))}.bar2 .t>i.low{background:var(--bad)}
+.bar2>span:first-child::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);margin-right:8px}
+.banner{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:10px;color:#fff;background:linear-gradient(100deg,var(--ban-a),var(--ban-b));font-weight:600}
+.conf{display:flex;gap:5px;flex:none}.conf i{width:10px;height:10px;border-radius:50%}
+.conf i:nth-child(1){background:#FFD23F}.conf i:nth-child(2){background:#FF7BA3;border-radius:2px;transform:rotate(20deg)}.conf i:nth-child(3){background:#7FE3C3}
+.tg{border-top:4px solid var(--c)}
+.empty{display:flex;gap:16px;align-items:center}
+@media(max-width:620px){.hero{grid-template-columns:1fr}.hero-art{width:190px;justify-self:end;margin-top:-6px}}
+@media(max-width:520px){.bar2{grid-template-columns:90px 1fr 40px}.card{padding:16px}.brand span{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<header class="bar"><div class="bar-in"><div class="brand"><i></i><span>TOEIC Tracker</span></div><nav id="nav" aria-label="เมนูหลัก"></nav></div></header>
+<div class="wrap"><main id="app"></main></div>
+<script>
+const BANK_GRAMMAR = [
+{id:"g01",cat:"grammar",lv:1,q:"The new marketing manager ------ the quarterly report to the board yesterday.",o:["submit","submits","submitted","submitting"],a:2,e:"มี yesterday จึงใช้ Past Simple → submitted"},
+{id:"g02",cat:"grammar",lv:1,q:"All employees must ------ their ID badges at the entrance.",o:["showing","show","shows","shown"],a:1,e:"หลัง modal verb (must) ใช้ V1 เสมอ → show"},
+{id:"g03",cat:"wordform",lv:1,q:"Ms. Tanaka is ------ for organizing the annual conference.",o:["responsible","responsibly","responsibility","respond"],a:0,e:"หลัง is ต้องเป็น adjective → responsible (be responsible for)"},
+{id:"g04",cat:"grammar",lv:1,q:"The meeting was postponed ------ the manager was out of town.",o:["because","because of","despite","although"],a:0,e:"ตามด้วยประโยคเต็ม (S+V) ใช้ because; because of ตามด้วยนาม"},
+{id:"g05",cat:"grammar",lv:1,q:"The shipment will arrive ------ three days.",o:["in","on","at","by"],a:0,e:"in + ช่วงเวลา = ภายใน/อีก ... (อีก 3 วัน)"},
+{id:"g06",cat:"grammar",lv:2,q:"Neither the manager nor the assistants ------ aware of the change.",o:["is","are","has","been"],a:1,e:"Neither...nor ให้ verb สอดคล้องกับประธานตัวที่ใกล้ที่สุด (assistants = พหูพจน์) → are"},
+{id:"g07",cat:"wordform",lv:1,q:"The company's profits have increased ------ over the past year.",o:["significant","significance","significantly","signify"],a:2,e:"ขยายกริยา increased ต้องใช้ adverb → significantly"},
+{id:"g08",cat:"grammar",lv:1,q:"If the supplier ------ the deadline, we will cancel the contract.",o:["miss","missed","misses","will miss"],a:2,e:"Conditional แบบที่ 1: If + Present Simple, ... will + V1 (supplier เอกพจน์ → misses)"},
+{id:"g09",cat:"wordform",lv:2,q:"The ------ of the new software has reduced our costs.",o:["implement","implementing","implementation","implemented"],a:2,e:"หลัง the ต้องเป็นนาม และ of ตามหลัง → implementation"},
+{id:"g10",cat:"grammar",lv:1,q:"Mr. Kim has worked here ------ 2015.",o:["for","since","during","from"],a:1,e:"since + จุดเวลาในอดีต ใช้กับ Present Perfect"},
+{id:"g11",cat:"grammar",lv:2,q:"The report, ------ was written by the finance team, is very detailed.",o:["who","which","what","whose"],a:1,e:"Relative pronoun แทนสิ่งของ (the report) ในประโยคที่มี comma → which"},
+{id:"g12",cat:"grammar",lv:2,q:"------ the heavy rain, the outdoor event went ahead as planned.",o:["Although","Despite","Because","However"],a:1,e:"ตามด้วยนาม (the heavy rain) ใช้ Despite; Although ต้องตามด้วยประโยค"},
+{id:"g13",cat:"grammar",lv:1,q:"Applicants are required to ------ three references.",o:["provide","provision","providing","provided"],a:0,e:"to + V1 → provide"},
+{id:"g14",cat:"grammar",lv:3,q:"The CEO asked that every department ------ its budget by Monday.",o:["submits","submitted","submit","submitting"],a:2,e:"หลัง ask/request/suggest/require + that ใช้ subjunctive (V1 ไม่ผันตามประธาน)"},
+{id:"g15",cat:"grammar",lv:3,q:"Had we known about the delay, we ------ alternative arrangements.",o:["will make","would have made","made","would make"],a:1,e:"Conditional แบบที่ 3 แบบกลับประโยค: Had + S + V3, S + would have + V3"},
+{id:"g16",cat:"wordform",lv:1,q:"Only ------ employees may enter the laboratory.",o:["authorize","authorized","authorizing","authorization"],a:1,e:"ขยายนาม employees → adjective (V3 แบบ passive) = authorized"},
+{id:"g17",cat:"wordform",lv:1,q:"Ms. Lee is one of the most ------ designers in the industry.",o:["creativity","create","creative","creatively"],a:2,e:"most + adjective + noun → creative"},
+{id:"g18",cat:"grammar",lv:1,q:"We look forward to ------ you at the seminar.",o:["see","seeing","saw","seen"],a:1,e:"look forward to + V-ing (to เป็น preposition)"},
+{id:"g19",cat:"grammar",lv:2,q:"Mr. Park, ------ office is on the third floor, will lead the training.",o:["who","whom","whose","which"],a:2,e:"แสดงความเป็นเจ้าของ (his office) → whose"},
+{id:"g20",cat:"grammar",lv:2,q:"The new policy applies to ------ full-time and part-time staff.",o:["both","either","neither","each"],a:0,e:"both A and B = ทั้ง A และ B"},
+{id:"g21",cat:"grammar",lv:3,q:"By next June, the company ------ in this city for twenty years.",o:["operates","has operated","will have operated","operated"],a:2,e:"By + เวลาในอนาคต + for ... years → Future Perfect (will have + V3)"},
+{id:"g22",cat:"grammar",lv:2,q:"The manager asked ------ the contract had been signed.",o:["that","whether","what","which"],a:1,e:"ถามแบบ Yes/No ในประโยคอ้อม ใช้ whether/if"},
+{id:"g23",cat:"grammar",lv:1,q:"Customers can return items ------ they are not satisfied.",o:["unless","if","despite","during"],a:1,e:"ความหมาย 'ถ้าไม่พอใจ' ใช้ if (unless แปลว่า ถ้าไม่ จึงซ้อนกับ not)"},
+{id:"g24",cat:"wordform",lv:1,q:"The conference room is ------ for the afternoon.",o:["reserve","reserved","reserving","reservation"],a:1,e:"be + V3 (passive) → is reserved"},
+{id:"g25",cat:"grammar",lv:2,q:"Sales were ------ higher than expected last quarter.",o:["much","very","so","too"],a:0,e:"เสริมความหมาย comparative (higher) ใช้ much/far/even/still ไม่ใช้ very"},
+{id:"g26",cat:"grammar",lv:1,q:"The warranty is valid ------ one year from the date of purchase.",o:["for","since","at","until"],a:0,e:"valid for + ระยะเวลา"},
+{id:"g27",cat:"vocab",lv:2,q:"Mr. Evans is ------ to attend the workshop because of a schedule conflict.",o:["unable","impossible","unfit","improbable"],a:0,e:"be unable to + V1 ; impossible/improbable ใช้กับสิ่งของหรือ it is ... that"},
+{id:"g28",cat:"grammar",lv:3,q:"Not until the inspection was complete ------ allowed to reopen the plant.",o:["the workers were","were the workers","the workers","workers"],a:1,e:"Not until ขึ้นต้นประโยค ต้องกลับ verb ก่อนประธาน (were the workers)"}
+];
+const BANK_VOCAB = [
+{id:"v01",cat:"vocab",lv:2,q:"The hotel offers a ------ breakfast to all guests.",o:["complimentary","complementary","compliment","complimenting"],a:0,e:"complimentary = ฟรี (แถมให้) ; complementary = ที่เสริมกัน"},
+{id:"v02",cat:"vocab",lv:1,q:"Employees are ------ to wear safety helmets on the construction site.",o:["prohibited","required","forbidden","refused"],a:1,e:"be required to = ถูกกำหนดให้ต้อง ; prohibited/forbidden = ห้าม"},
+{id:"v03",cat:"wordform",lv:1,q:"The airline apologized for the ------ caused by the flight delay.",o:["inconvenience","convenience","convenient","inconvenient"],a:0,e:"หลัง the ต้องเป็นนาม และความหมายเชิงลบ → inconvenience (ความไม่สะดวก)"},
+{id:"v04",cat:"vocab",lv:1,q:"The contract will ------ at the end of December.",o:["expire","expel","expect","export"],a:0,e:"expire = หมดอายุ"},
+{id:"v05",cat:"grammar",lv:1,q:"Our firm specializes ------ financial consulting.",o:["on","in","at","for"],a:1,e:"specialize in = เชี่ยวชาญด้าน"},
+{id:"v06",cat:"vocab",lv:2,q:"To ------ expenses, the company decided to reduce business travel.",o:["cut","raise","add","spend"],a:0,e:"cut expenses = ลดค่าใช้จ่าย"},
+{id:"v07",cat:"vocab",lv:2,q:"The warehouse manager is in ------ of inventory.",o:["charge","duty","work","post"],a:0,e:"in charge of = รับผิดชอบดูแล"},
+{id:"v08",cat:"wordform",lv:1,q:"The candidate has extensive ------ in project management.",o:["experience","experiment","expert","expertly"],a:0,e:"extensive + นาม → experience (ประสบการณ์) ; experiment = การทดลอง"},
+{id:"v09",cat:"vocab",lv:2,q:"Please ------ me if you cannot attend the meeting.",o:["notify","notice","note","knowledge"],a:0,e:"notify + คน = แจ้งให้ทราบ"},
+{id:"v10",cat:"vocab",lv:1,q:"The renovation is expected to ------ three weeks.",o:["spend","take","pass","cost"],a:1,e:"take + ระยะเวลา = ใช้เวลา"},
+{id:"v11",cat:"wordform",lv:1,q:"Mr. Chen was ------ to the position of regional director last week.",o:["promoted","promised","promoting","promotion"],a:0,e:"be promoted to = ได้เลื่อนตำแหน่ง ; promised = สัญญา"},
+{id:"v12",cat:"vocab",lv:1,q:"The store offers a full ------ if you are not satisfied with the product.",o:["refund","refuse","refer","refrain"],a:0,e:"refund = การคืนเงิน"},
+{id:"v13",cat:"wordform",lv:2,q:"The conference attracted ------ 500 participants from around the world.",o:["approximately","approximate","approximation","approximating"],a:0,e:"adverb ขยายตัวเลข → approximately (ประมาณ)"},
+{id:"v14",cat:"wordform",lv:2,q:"Because of the ------ weather, the flight was cancelled.",o:["severe","severity","severely","severed"],a:0,e:"ขยายนาม weather → adjective severe"},
+{id:"v15",cat:"grammar",lv:1,q:"The board will ------ the proposal at tomorrow's meeting.",o:["discuss","discussion","discussing","discusses"],a:0,e:"will + V1 → discuss (ไม่มี about ตามหลัง)"},
+{id:"v16",cat:"wordform",lv:1,q:"Ms. Okada was ------ for her outstanding sales performance.",o:["recognized","recognizing","recognize","recognition"],a:0,e:"be + V3 → was recognized (ได้รับการยกย่อง)"},
+{id:"v17",cat:"vocab",lv:1,q:"The company has a strict ------ against accepting gifts from clients.",o:["policy","police","politics","polite"],a:0,e:"policy = นโยบาย ; police = ตำรวจ"},
+{id:"v18",cat:"vocab",lv:2,q:"The two companies decided to ------ their resources to develop the product.",o:["combine","divide","separate","remove"],a:0,e:"combine resources = รวมทรัพยากร"},
+{id:"v19",cat:"wordform",lv:2,q:"Passengers must not leave their luggage ------.",o:["unattended","attended","attention","attending"],a:0,e:"leave + ของ + unattended = ทิ้งไว้โดยไม่มีคนดูแล"},
+{id:"v20",cat:"wordform",lv:2,q:"The manager's decision was ------ on customer feedback.",o:["based","basic","basis","basing"],a:0,e:"be based on = อิงจาก"},
+{id:"v21",cat:"vocab",lv:2,q:"The software update is ------ with all major operating systems.",o:["compatible","comparable","competent","compact"],a:0,e:"compatible with = ใช้งานร่วมกันได้กับ"},
+{id:"v22",cat:"grammar",lv:2,q:"The new hire will ------ to the marketing director.",o:["report","reporting","reports","reported"],a:0,e:"will + V1 ; report to = ขึ้นตรงต่อ"},
+{id:"v23",cat:"wordform",lv:1,q:"Her presentation was so ------ that everyone remembered it.",o:["impressive","impression","impress","impressively"],a:0,e:"be + so + adjective → impressive"},
+{id:"v24",cat:"grammar",lv:1,q:"Due to a ------ in the schedule, the training will start an hour later.",o:["change","changing","changed","changes"],a:0,e:"a + นามเอกพจน์ → a change"}
+];
+const BANK_PASSAGES = {
+p6a:{title:"Email — Office renovation",text:"To: All Staff\nSubject: Office Renovation\n\nDear colleagues,\n\nWe would like to inform you that the third floor will be (1) ------ for renovation starting March 3. During this period, employees on that floor will temporarily move to the second floor. (2) ------ Please remove all personal items from your desks by Friday, February 28. Facilities staff will be available to assist anyone who needs help. We apologize for any inconvenience and thank you for your (3) ------."},
+p6b:{title:"Notice — Fitness center",text:"Greenfield Fitness Center — Notice to Members\n\nStarting June 1, the center will extend its weekday hours. The facility will open at 5:30 A.M. and close at 11:00 P.M. (1) ------, the weekend schedule will remain unchanged. Members who wish to (2) ------ their current plan to include group classes may do so at the front desk. (3) ------"},
+p6c:{title:"Email — Customer service",text:"Dear Mr. Alvarez,\n\nThank you for contacting us about your order #48213. We are sorry to learn that the desk you received was (1) ------. We have arranged for a replacement to be sent to you at no cost. (2) ------ It should arrive within five business days. Please keep the original item, as there is no need to (3) ------ it to us."},
+p6d:{title:"Memo — Workshop",text:"MEMO\nTo: Sales Team\nFrom: Human Resources\n\nA mandatory customer-service workshop will be held on October 12 in Conference Room B. All sales staff (1) ------ to attend. The session will focus on handling complaints (2) ------ and building long-term client relationships. (3) ------ Lunch will be provided."},
+p7a:{title:"Email — Revised schedule",text:"From: Dana Whitfield, Event Coordinator\nTo: Speakers, Harbor Tech Summit\nDate: September 4\nSubject: Revised schedule\n\nDear speakers,\n\nDue to a venue conflict, the Harbor Tech Summit will now take place at the Marlowe Convention Center instead of the Lakeside Hotel. The dates remain September 21–22. Sessions will begin at 9:00 A.M. as planned, but registration will open one hour earlier than previously announced. Speakers should arrive at least 45 minutes before their sessions to test equipment. Those who booked rooms at the Lakeside Hotel will be moved to the Marlowe Suites at the same rate, and a free shuttle will run between the two buildings every 20 minutes. Please confirm your travel details by September 10."},
+p7b:{title:"Job advertisement",text:"Position: Assistant Store Manager\nBright Basket Grocers — Riverside Branch\n\nBright Basket Grocers is looking for an Assistant Store Manager for its Riverside branch. The successful candidate will supervise a team of 15 employees, manage weekly inventory orders, and help resolve customer concerns. Applicants must have at least two years of retail experience, including one year in a supervisory role. Knowledge of inventory software is an advantage. The position offers a competitive salary, health insurance, and a 15 percent employee discount. To apply, send a résumé and cover letter to the hiring office by November 30. Interviews will be held during the first week of December."},
+p7c:{title:"News — Factory expansion",text:"Harlow Textiles to Open Second Factory\n\nHarlow Textiles announced on Tuesday that it will open a second factory in Kenton, expected to create about 300 jobs. The company, which has produced cotton fabrics for 25 years, said demand from overseas buyers has nearly doubled since last year. Construction will begin in January and should be completed by next November. CEO Marta Ellison said the new site would use solar panels to cover about half of its energy needs. \"We want to grow while reducing our environmental impact,\" she said. Local officials welcomed the news, noting that Kenton's unemployment rate is higher than the national average."},
+p7d:{title:"Notice — Library policy",text:"Notice: Late-Return Policy\n\nEffective January 1, the Eastgate Public Library will change its late-return policy. Overdue books will no longer incur daily fines. Instead, borrowers with overdue items will be unable to check out new materials until the items are returned. Items overdue by more than 30 days will be considered lost, and a replacement fee will apply. Members may renew items up to two times online, provided no other patron has reserved them. Questions? Visit the information desk."}
+};
+const BANK_READING = [
+{id:"r6a1",pid:"p6a",cat:"part6",lv:2,q:"Blank (1)",o:["closing","closed","close","closes"],a:1,e:"will be + V3 (passive) → will be closed"},
+{id:"r6a2",pid:"p6a",cat:"part6",lv:2,q:"Blank (2)",o:["The renovation is expected to take about six weeks.","Our new cafeteria opens next month.","Several employees have joined the finance team.","Parking fees will increase in April."],a:0,e:"ประโยคที่เติมต้องต่อเนื่องกับเรื่องการย้ายชั้นชั่วคราวระหว่างปรับปรุง → ระยะเวลาปรับปรุง"},
+{id:"r6a3",pid:"p6a",cat:"part6",lv:1,q:"Blank (3)",o:["cooperate","cooperative","cooperation","cooperatively"],a:2,e:"your + นาม → cooperation"},
+{id:"r6b1",pid:"p6b",cat:"part6",lv:2,q:"Blank (1)",o:["However","Therefore","For example","In addition"],a:0,e:"ประโยคหน้าพูดเรื่องเปลี่ยนเวลา ประโยคหลัง 'วันหยุดสุดสัปดาห์ไม่เปลี่ยน' เป็นความขัดแย้ง → However"},
+{id:"r6b2",pid:"p6b",cat:"part6",lv:1,q:"Blank (2)",o:["upgrade","upgrading","upgraded","upgrades"],a:0,e:"wish to + V1 → upgrade"},
+{id:"r6b3",pid:"p6b",cat:"part6",lv:2,q:"Blank (3)",o:["Please bring a valid membership card to the desk.","The swimming pool was built last year.","Our founder retired in 2010.","Thank you for choosing a career with us."],a:0,e:"ต่อจากการอัปเกรดแผนที่เคาน์เตอร์ → คำแนะนำสิ่งที่ต้องนำมา"},
+{id:"r6c1",pid:"p6c",cat:"part6",lv:1,q:"Blank (1)",o:["damage","damaged","damaging","damages"],a:1,e:"was + adjective/V3 → damaged (เสียหาย)"},
+{id:"r6c2",pid:"p6c",cat:"part6",lv:2,q:"Blank (2)",o:["Your replacement has already been shipped.","Our store is hiring new staff.","Desks are on sale this week.","We have moved to a new address."],a:0,e:"ประโยคถัดไป 'It should arrive...' ใช้ It แทน replacement ที่ถูกส่งแล้ว"},
+{id:"r6c3",pid:"p6c",cat:"part6",lv:1,q:"Blank (3)",o:["return","returned","returning","returns"],a:0,e:"no need to + V1 → return"},
+{id:"r6d1",pid:"p6d",cat:"part6",lv:2,q:"Blank (1)",o:["expect","are expected","expecting","expected"],a:1,e:"ประธาน staff ถูกคาดหวัง → are expected to attend (passive)"},
+{id:"r6d2",pid:"p6d",cat:"part6",lv:3,q:"Blank (2)",o:["effective","effectiveness","effectively","effect"],a:2,e:"ขยายกริยา handling → adverb effectively"},
+{id:"r6d3",pid:"p6d",cat:"part6",lv:2,q:"Blank (3)",o:["The workshop will begin at 9:00 A.M. and finish at 3:00 P.M.","Our sales figures rose in September.","The parking lot is closed for repairs.","A new vice president has been appointed."],a:0,e:"ต่อด้วยรายละเอียดของ workshop ก่อนประโยคเรื่องอาหารกลางวัน"},
+{id:"r7a1",pid:"p7a",cat:"part7",lv:1,q:"Why was the email written?",o:["To announce a change of venue","To invite new speakers","To cancel the summit","To request payment"],a:0,e:"ใจความหลัก: สถานที่เปลี่ยนจาก Lakeside Hotel เป็น Marlowe Convention Center"},
+{id:"r7a2",pid:"p7a",cat:"part7",lv:2,q:"What has NOT changed?",o:["The location","The time registration opens","The dates of the summit","The hotel for speakers"],a:2,e:"'The dates remain September 21–22' → วันที่ไม่เปลี่ยน"},
+{id:"r7a3",pid:"p7a",cat:"part7",lv:1,q:"What are speakers asked to do by September 10?",o:["Test equipment","Confirm travel details","Book new rooms","Take the shuttle"],a:1,e:"ประโยคสุดท้าย: Please confirm your travel details by September 10"},
+{id:"r7b1",pid:"p7b",cat:"part7",lv:2,q:"Which is NOT mentioned as a responsibility of the job?",o:["Supervising employees","Managing inventory orders","Setting product prices","Resolving customer concerns"],a:2,e:"ในประกาศไม่ได้พูดถึงการตั้งราคาสินค้า"},
+{id:"r7b2",pid:"p7b",cat:"part7",lv:2,q:"What is required of applicants?",o:["A degree in business","At least one year in a supervisory role","Knowledge of inventory software","Experience in another country"],a:1,e:"ต้องมีประสบการณ์ ≥ 2 ปี รวมงานหัวหน้างาน 1 ปี ส่วนซอฟต์แวร์เป็นข้อได้เปรียบ (advantage) ไม่ใช่ข้อบังคับ"},
+{id:"r7b3",pid:"p7b",cat:"part7",lv:1,q:"When will interviews take place?",o:["Before November 30","During the first week of December","In mid-December","In January"],a:1,e:"Interviews will be held during the first week of December"},
+{id:"r7b4",pid:"p7b",cat:"part7",lv:3,q:"The word \"competitive\" in the passage is closest in meaning to",o:["aggressive","comparable to or better than others","athletic","unfair"],a:1,e:"competitive salary = เงินเดือนที่แข่งขันได้ในตลาด"},
+{id:"r7c1",pid:"p7c",cat:"part7",lv:1,q:"Why is the company expanding?",o:["Overseas demand is rising","Rent is lower","It merged with another firm","The government asked it to"],a:0,e:"demand from overseas buyers has nearly doubled"},
+{id:"r7c2",pid:"p7c",cat:"part7",lv:1,q:"When is construction expected to be completed?",o:["In January","Next November","On Tuesday","In 25 years"],a:1,e:"should be completed by next November"},
+{id:"r7c3",pid:"p7c",cat:"part7",lv:2,q:"What is indicated about Kenton?",o:["Its unemployment rate is above the national average","It already has a Harlow factory","It is located overseas","It is powered by solar energy"],a:0,e:"Kenton's unemployment rate is higher than the national average"},
+{id:"r7d1",pid:"p7d",cat:"part7",lv:1,q:"What will happen to borrowers with overdue items?",o:["They will pay daily fines","They cannot borrow new items until returning","They will lose their membership","They will pay a replacement fee immediately"],a:1,e:"unable to check out new materials until the items are returned"},
+{id:"r7d2",pid:"p7d",cat:"part7",lv:2,q:"When will a replacement fee apply?",o:["After 30 days overdue","After two renewals","When an item is reserved","On January 1"],a:0,e:"overdue by more than 30 days → considered lost → replacement fee"},
+{id:"r7d3",pid:"p7d",cat:"part7",lv:3,q:"In which case can an item NOT be renewed online?",o:["Another patron has reserved it","It is less than 30 days overdue","It was borrowed in January","It has been renewed once"],a:0,e:"renew ได้ 2 ครั้ง ถ้าไม่มีผู้อื่นจอง (provided no other patron has reserved them)"}
+];
+/* ===== core: state, storage, selection, scoring ===== */
+const KEY='toeic750.v1';
+const CAT={grammar:'ไวยากรณ์',wordform:'รูปคำ (Word form)',vocab:'ศัพท์ / สำนวน',part6:'Part 6 เติมข้อความ',part7:'Part 7 อ่านจับใจความ'};
+const CATS=Object.keys(CAT);
+const W={1:1,2:1.5,3:2};
+const MAP=[[0,5],[.3,150],[.45,230],[.6,300],[.7,350],[.78,395],[.85,430],[.93,470],[1,495]];
+const BASE=[...BANK_GRAMMAR,...BANK_VOCAB,...BANK_READING];
+const TARGETS=[[500,550,'ปูพื้นฐานให้แน่น'],[600,650,'พื้นฐานใช้งานได้'],[700,750,'ระดับกลางค่อนสูง'],[750,800,'ทำงานได้คล่อง (ค่าเริ่มต้น)'],[850,900,'ระดับสูง'],[900,990,'ใกล้เต็ม เน้นความแม่นยำ']];
+const tgtLabel=t=>{t=t||S.target;return t[1]>=990?t[0]+'+':t[0]+'–'+t[1]+'+'};
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dkey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDays=(k,n)=>{const [y,m,d]=k.split('-').map(Number);return dkey(new Date(y,m-1,d+n))};
+const diffDays=(a,b)=>{const p=k=>{const [y,m,d]=k.split('-').map(Number);return Date.UTC(y,m-1,d)};return Math.round((p(b)-p(a))/864e5)};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+
+function fresh(){return{v:1,updated:0,target:[750,800],targetSet:false,attempts:[],seen:{},mist:{},ai:[],daily:{},session:null}}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.v===1)return Object.assign(fresh(),o)}}catch(e){}return fresh()}
+let S=load();
+let dbDoc=null,dbBusy=false,dbAgain=false,dbState='local';
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function commit(){S.updated=Date.now();saveLocal();pushDb()}
+async function pushDb(){
+  if(!dbDoc)return; if(dbBusy){dbAgain=true;return}
+  dbBusy=true;
+  try{const copy=Object.assign({},S,{session:null});await dbDoc.set(copy);dbState='synced'}catch(e){dbState='local'}
+  dbBusy=false; if(dbAgain){dbAgain=false;pushDb()}
+  if(typeof renderSync==='function')renderSync();
+}
+async function initDb(){
+  try{
+    if(!window.claude||!claude.use)return;
+    const u=await claude.use('user'); const db=await claude.use('db'); if(!u||!db)return;
+    const id=await u.id(); if(!id)return;
+    dbDoc=db.doc('data/users/'+id+'/progress');
+    const snap=await dbDoc.get();
+    if(snap.exists){const d=snap.data(); if(d&&d.v===1&&(d.updated||0)>(S.updated||0)){S=Object.assign(fresh(),d,{session:S.session});saveLocal()}}
+    else if(S.updated){pushDb()}
+    dbState='synced'; if(typeof renderAll==='function')renderAll();
+  }catch(e){dbDoc=null;dbState='local'}
+}
+
+/* ----- question access ----- */
+function allQ(){return BASE.concat(S.ai)}
+function qById(id){return allQ().find(q=>q.id===id)}
+function unitsOf(qs){
+  const m=new Map(),out=[];
+  for(const q of qs){ if(q.pid){ if(!m.has(q.pid)){const u={pid:q.pid,qs:[]};m.set(q.pid,u);out.push(u)} m.get(q.pid).qs.push(q)} else out.push({qs:[q]}) }
+  return out;
+}
+const seenN=q=>(S.seen[q.id]||{}).n||0;
+const unitSeen=u=>Math.min(...u.qs.map(seenN));
+function dueMistakes(){const t=dkey();return Object.keys(S.mist).filter(id=>S.mist[id].due<=t&&qById(id))}
+
+/* build a question set. kind: placement | weekly | daily */
+function buildSet(kind){
+  const pool=unitsOf(allQ()); const take=[]; let shortfall=0;
+  const rank=us=>shuffle(us).sort((a,b)=>unitSeen(a)-unitSeen(b));
+  if(kind==='daily'){
+    const ids=shuffle(dueMistakes()).slice(0,3); ids.forEach(id=>take.push({qs:[qById(id)],rev:true}));
+    const used=new Set(ids); let n=take.length;
+    const cand=rank(pool.filter(u=>!u.qs.some(q=>used.has(q.id))));
+    const unseen=cand.filter(u=>unitSeen(u)===0);
+    let i=0; for(const u of cand){ if(n>=10)break; take.push(u); n+=u.qs.length; i++ }
+    const fresh=unseen.reduce((a,u)=>a+u.qs.length,0); shortfall=Math.max(0,10-3-fresh)>0?Math.max(0,(10-take.filter(t=>t.rev).length)-fresh):0;
+  }else{
+    const p6=rank(pool.filter(u=>u.pid&&u.pid.startsWith('p6'))).slice(0,2);
+    const p7=rank(pool.filter(u=>u.pid&&u.pid.startsWith('p7'))).slice(0,2);
+    p6.concat(p7).forEach(u=>take.push(u));
+    let n=take.reduce((a,u)=>a+u.qs.length,0);
+    const singles=rank(pool.filter(u=>!u.pid)); const quota={1:9,2:11,3:7}; const got={1:0,2:0,3:0};
+    for(const u of singles){const lv=u.qs[0].lv; if(n>=30)break; if(got[lv]<quota[lv]){take.push(u);got[lv]++;n++}}
+    for(const u of singles){if(n>=30)break; if(!take.includes(u)){take.push(u);n++}}
+    const freshN=take.reduce((a,u)=>a+(unitSeen(u)===0?u.qs.length:0),0); shortfall=Math.max(0,n-freshN);
+    if(kind==='placement')shortfall=0;
+  }
+  const qs=[];shuffleUnits(take).forEach(u=>u.qs.forEach(q=>qs.push(q.id)));
+  return{ids:qs,shortfall};
+}
+function shuffleUnits(t){
+  const rev=t.filter(u=>u.rev),rest=t.filter(u=>!u.rev);
+  const pass=rest.filter(u=>u.pid),sing=rest.filter(u=>!u.pid);
+  return rev.concat(shuffle(sing),shuffle(pass)); // singles first, passage blocks last (TOEIC-like order)
+}
+function startSession(kind,ids){
+  const perm={};ids.forEach(id=>perm[id]=shuffle([0,1,2,3]));
+  S.session={kind,ids,perm,ans:{},checked:{},idx:0,start:Date.now(),date:dkey()};
+  saveLocal();
+}
+
+/* ----- scoring ----- */
+function estReading(pct){
+  for(let i=1;i<MAP.length;i++){const[a,x]=MAP[i-1],[b,y]=MAP[i];if(pct<=b)return Math.round(x+(y-x)*((pct-a)/(b-a)))}
+  return 495;
+}
+function levelOf(total){
+  if(total<400)return{k:'ระดับเริ่มต้น',d:'ควรปูพื้นฐานไวยากรณ์และศัพท์ธุรกิจก่อน'};
+  if(total<550)return{k:'ระดับพื้นฐาน',d:'เข้าใจเรื่องง่ายได้ ยังพลาดข้อที่ใช้ไวยากรณ์ซับซ้อน'};
+  if(total<750)return{k:'ระดับกลาง',d:'ใกล้ถึงระดับทำงานได้ดี ต้องเก็บคะแนนข้อยากและเรื่องเวลา'};
+  if(total<860)return{k:'ระดับทำงานได้คล่อง',d:'คะแนนอยู่ราว 750–855 รักษาระดับและเก็บข้อยากที่เหลือ'};
+  return{k:'ระดับสูงมาก',d:'เกินเป้าหมาย เน้นความแม่นยำและความเร็ว'};
+}
+function grade(ids,ans,perm){
+  let wc=0,wt=0,c=0;const cat={};CATS.forEach(k=>cat[k]=[0,0]);const wrong=[];
+  ids.forEach(id=>{
+    const q=qById(id);if(!q)return; const pick=ans[id]; const ok=pick===q.a; wt+=W[q.lv]||1;
+    cat[q.cat]=cat[q.cat]||[0,0]; cat[q.cat][1]++;
+    if(ok){wc+=W[q.lv]||1;c++;cat[q.cat][0]++}else wrong.push(id);
+  });
+  const pct=wt?wc/wt:0; const reading=estReading(pct);
+  return{n:ids.length,c,pct,reading,total:reading*2,cat,wrong};
+}
+function recordAnswer(id,ok){
+  const s=S.seen[id]||{n:0,c:0};s.n++;if(ok)s.c++;s.last=dkey();S.seen[id]=s;
+  const BOX=[1,3,7,14]; const m=S.mist[id];
+  if(!ok){S.mist[id]={box:0,due:addDays(dkey(),1)}}
+  else if(m){m.box++; if(m.box>=BOX.length)delete S.mist[id]; else m.due=addDays(dkey(),BOX[m.box])}
+}
+function finishSession(){
+  const ss=S.session;if(!ss)return null;
+  const g=grade(ss.ids,ss.ans);
+  ss.ids.forEach(id=>{const q=qById(id);if(q)recordAnswer(id,ss.ans[id]===q.a)});
+  const at={kind:ss.kind,date:dkey(),ts:Date.now(),n:g.n,c:g.c,pct:g.pct,reading:g.reading,total:g.total,cat:g.cat,secs:Math.round((Date.now()-ss.start)/1000)};
+  S.attempts.push(at);
+  const d=S.daily[ss.date]||{n:0,c:0};d.n+=g.n;d.c+=g.c;S.daily[ss.date]=d;
+  S.session=null;commit();
+  return{at,g,ids:ss.ids,ans:ss.ans,perm:ss.perm};
+}
+const tests=()=>S.attempts.filter(a=>a.kind==='placement'||a.kind==='weekly');
+const lastTest=()=>tests().slice(-1)[0];
+function weeklyDue(){const t=lastTest();if(!t)return false;return diffDays(t.date,dkey())>=7}
+function streak(){let n=0,k=dkey();if(!(S.daily[k]&&S.daily[k].n))k=addDays(k,-1);while(S.daily[k]&&S.daily[k].n){n++;k=addDays(k,-1)}return n}
+function weakCats(){
+  const t={};CATS.forEach(k=>t[k]=[0,0]);
+  Object.keys(S.seen).forEach(id=>{const q=qById(id);if(q){t[q.cat][0]+=S.seen[id].c;t[q.cat][1]+=S.seen[id].n}});
+  return CATS.filter(k=>t[k][1]>=3).sort((a,b)=>t[a][0]/t[a][1]-t[b][0]/t[b][1]);
+}
+
+/* ----- AI generation (Claude via the viewer's account) ----- */
+async function genAI(count,onState){
+  const sample=await (window.claude&&claude.use?claude.use('sample'):null);
+  if(!sample)throw{code:'unavailable'};
+  const weak=weakCats().filter(k=>['grammar','wordform','vocab'].includes(k)).slice(0,2).map(k=>CAT[k]);
+  const recent=allQ().slice(-25).map(q=>q.q).join(' | ').slice(0,1800);
+  const tg=S.target[0],band=tg>=850?'TOEIC 800-990 level (mostly lv 3, a few lv 2)':tg>=700?'TOEIC 650-850 level (mostly lv 2 and 3, a few lv 1)':tg>=600?'TOEIC 500-700 level (mostly lv 1 and 2, a few lv 3)':'TOEIC 300-550 level (mostly lv 1, some lv 2)';
+  const prompt='You are a TOEIC Reading item writer. Write '+count+' NEW, original Part 5 style incomplete-sentence questions (one blank shown as ------) in business contexts (office, HR, finance, shipping, travel, customer service, meetings). '
+   +'Match this learner target: '+band+'. Categories: "grammar", "wordform", "vocab". '+(weak.length?'Emphasize these weaker areas where natural: '+weak.join(', ')+'. ':'')
+   +'Each item must have exactly one clearly correct option and three plausible distractors. Do not repeat these existing stems: '+recent+'\n'
+   +'Reply with only a JSON array. Each element: {"cat":"grammar|wordform|vocab","lv":1|2|3,"q":"sentence with ------","o":["opt1","opt2","opt3","opt4"],"a":0-3 index of the correct option,"e":"explanation in Thai, 1-2 short sentences, mention the rule or the meaning"}.';
+  onState&&onState('Claude กำลังคิดโจทย์...');
+  const arr=await sample.json(prompt,{modelTier:'default',cache:false});
+  if(!Array.isArray(arr))throw{code:'invalid_json'};
+  const have=new Set(allQ().map(q=>q.q.toLowerCase()));let added=0;
+  arr.forEach((x,i)=>{
+    if(!x||typeof x.q!=='string'||!Array.isArray(x.o)||x.o.length!==4||!Number.isInteger(x.a)||x.a<0||x.a>3||typeof x.e!=='string')return;
+    if(!x.q.includes('------')||have.has(x.q.toLowerCase()))return;
+    if(new Set(x.o.map(s=>String(s).trim().toLowerCase())).size!==4)return;
+    const cat=['grammar','wordform','vocab'].includes(x.cat)?x.cat:'grammar';const lv=[1,2,3].includes(x.lv)?x.lv:2;
+    S.ai.push({id:'ai'+Date.now().toString(36)+i,cat,lv,q:x.q.slice(0,400),o:x.o.map(s=>String(s).slice(0,120)),a:x.a,e:x.e.slice(0,400),ai:1});added++;
+  });
+  if(S.ai.length>150)S.ai=S.ai.slice(-150);
+  commit();return added;
+}
+/* ===== UI ===== */
+const BASEVIEWS=[['home','ภาพรวม'],['placement','วัดระดับ'],['daily','ฝึกวันนี้'],['weekly','สอบรายสัปดาห์'],['review','ทบทวนข้อผิด'],['progress','ความก้าวหน้า']];
+const views=()=>BASEVIEWS;
+let view='home',result=null,busy=null,toast='',timerH=null,changing=false,pickT=null;
+const app=()=>$('#app');
+function route(){const h=(location.hash||'#home').slice(1);view=views().some(v=>v[0]===h)?h:'home';result=null;busy=null;renderAll();window.scrollTo(0,0)}
+function go(v){if(location.hash==='#'+v)route();else location.hash='#'+v}
+function renderNav(){
+  const dailyDone=(S.daily[dkey()]||{}).n>0;
+  $('#nav').innerHTML=views().map(([k,t])=>{
+    const dot=(k==='daily'&&!dailyDone&&S.attempts.length)||(k==='weekly'&&weeklyDue())||(k==='placement'&&!S.attempts.some(a=>a.kind==='placement'));
+    return `<a href="#${k}" ${view===k?'aria-current="page"':''}>${t}${dot?'<span class="dot" title="มีงานรออยู่"></span>':''}</a>`}).join('');
+}
+function renderSync(){const e=$('#sync');if(e)e.textContent=dbState==='synced'?'บันทึกในบัญชีแล้ว':'บันทึกในเครื่องนี้'}
+function renderAll(){renderNav();clearInterval(timerH);const ss=S.session;
+  if(result)return viewResult();
+  if((!S.targetSet||changing)&&view!=='admin'&&!ss)return viewOnboard();
+  if(ss&&((view==='placement'&&ss.kind==='placement')||(view==='weekly'&&ss.kind==='weekly')||(view==='daily'&&ss.kind==='daily')))return viewQuiz();
+  ({home:viewHome,placement:()=>viewIntro('placement'),daily:()=>viewIntro('daily'),weekly:()=>viewIntro('weekly'),review:viewReview,progress:viewProgress})[view]();
+  renderSync();
+}
+
+/* ----- art ----- */
+const TCOL=['#0F9C78','#2BA7D8','#2447F5','#7A5CFA','#E2487A','#E8781A'];
+function ico(name,size){
+  size=size||40;
+  const g={
+   sun:['#FFD23F',`<circle cx="20" cy="20" r="6" fill="#2A2300"/>`+[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<line x1="${(20+10*Math.cos(r)).toFixed(1)}" y1="${(20+10*Math.sin(r)).toFixed(1)}" x2="${(20+14*Math.cos(r)).toFixed(1)}" y2="${(20+14*Math.sin(r)).toFixed(1)}" stroke="#2A2300" stroke-width="2.4" stroke-linecap="round"/>`}).join('')],
+   cal:['#2447F5',`<rect x="9" y="11" width="22" height="20" rx="4" fill="none" stroke="#fff" stroke-width="2.4"/><line x1="9" y1="17" x2="31" y2="17" stroke="#fff" stroke-width="2.4"/><polyline points="14,25 18,29 26,21" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`],
+   target:['#E2487A',`<circle cx="20" cy="20" r="12" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="20" cy="20" r="6.5" fill="none" stroke="#fff" stroke-width="2.4"/><circle cx="20" cy="20" r="2.2" fill="#fff"/>`],
+   book:['#0F9C78',`<rect x="11" y="9" width="18" height="22" rx="3" fill="none" stroke="#fff" stroke-width="2.4"/><line x1="15.5" y1="16" x2="24.5" y2="16" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><line x1="15.5" y1="21" x2="22" y2="21" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>`]
+  }[name];
+  return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true" focusable="false"><rect width="40" height="40" rx="10" fill="${g[0]}"/>${g[1]}</svg>`;
+}
+function heroArt(total){
+  const tops=[120,100,78,54,28],step=total==null?0:Math.min(4,Math.floor(total/200)),cx=29+38*step,cy=tops[step]-12;
+  return `<svg class="hero-art" viewBox="0 0 240 170" aria-hidden="true" focusable="false">
+   <line x1="6" y1="161" x2="236" y2="161" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>
+   ${tops.map((t,i)=>`<rect x="${14+38*i}" y="${t}" width="30" height="${160-t}" rx="6" fill="${TCOL[[0,1,3,5,4][i]]}"/>`).join('')}
+   <line x1="181" y1="28" x2="181" y2="4" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><polygon points="181,4 216,13 181,22" fill="#FFD23F"/>
+   <circle cx="${cx}" cy="${cy}" r="9" fill="#FFD23F" stroke="#fff" stroke-width="3"/>
+  </svg>`;
+}
+
+/* ----- home ----- */
+function gauge(total){
+  const [lo,hi]=S.target,pos=v=>Math.max(0,Math.min(100,v/990*100));
+  return `<div class="gauge" role="img" aria-label="คะแนนประมาณ ${total==null?'ยังไม่มี':total} จากเป้า ${tgtLabel()}">
+    <div class="track"></div>${total!=null?`<div class="fill" style="width:${pos(total)}%"></div>`:''}
+    <div class="band" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)+ (990-hi?0:0)}%;min-width:10px"></div>
+    ${total!=null?`<div class="me" style="left:${pos(total)}%"></div><div class="tag" style="left:${Math.min(94,Math.max(6,pos(total)))}%">${total}</div>`:''}
+    <div class="tag t" style="left:0;transform:none">0</div><div class="tag t" style="left:${pos(lo)}%">${tgtLabel()}</div><div class="tag t" style="left:100%;transform:translateX(-100%)">990</div></div>`;
+}
+function viewHome(){
+  const lt=lastTest(),total=lt?lt.total:null,td=dkey(),dn=S.daily[td]||{n:0,c:0};
+  const hasP=S.attempts.some(a=>a.kind==='placement'),due=dueMistakes().length;
+  const lv=lt?levelOf(lt.total):null,gap=lt?Math.max(0,S.target[0]-lt.total):null;
+  app().innerHTML=`
+  <div class="hero"><div class="stack"><div class="row sp"><span class="label">เป้าหมาย TOEIC ${tgtLabel()}</span><button class="ghost" id="chg">เปลี่ยนเป้า</button></div>
+  <h1>${lt?'คะแนนประมาณล่าสุด '+lt.total:'เริ่มจากวัดระดับครั้งแรก'}</h1>
+  <p class="muted">${lt?`${lv.k} · ${gap>0?'อีก '+gap+' คะแนนถึงเป้า':'ถึงเป้าแล้ว'} · ${lt.kind==='placement'?'จากข้อสอบวัดระดับ':'จากข้อสอบรายสัปดาห์'} ${lt.date}`:'ข้อสอบ 30 ข้อ ใช้เวลาราว 30 นาที ผลที่ได้จะเป็นจุดเริ่มต้นสำหรับเทียบความก้าวหน้า'}</p></div>${heroArt(total)}</div>
+  <div class="card">${gauge(total)}<p class="muted" style="font-size:13px">ประมาณการจากข้อสอบส่วน Reading (5–495) × 2 โดยสมมติว่า Listening ใกล้เคียงกัน ยังไม่มีข้อสอบฟังในแอปนี้</p></div>
+  <div class="grid">
+    <div class="card stack"><div class="row" style="gap:10px">${ico('sun',32)}<span class="label">ฝึกวันนี้</span></div>
+      <div class="big">${dn.n}<span class="muted" style="font-size:.4em"> ข้อ</span></div>
+      <p class="muted">${dn.n?`ถูก ${dn.c} ข้อ · ฝึกต่อเนื่อง ${streak()} วัน`:`10 ข้อต่อวัน${due?` รวมทบทวนข้อที่เคยผิด ${Math.min(3,due)} ข้อ`:''}`}</p>
+      <a class="btn ${dn.n?'':'primary'}" href="#daily">${dn.n?'ฝึกเพิ่ม':'เริ่มฝึกวันนี้'}</a></div>
+    <div class="card stack"><div class="row" style="gap:10px">${ico(hasP?'cal':'target',32)}<span class="label">${hasP?'สอบรายสัปดาห์':'วัดระดับครั้งแรก'}</span></div>
+      ${hasP?`<div class="big">${weeklyDue()?'ครบกำหนด':(7-diffDays(lt.date,td))+' วัน'}</div><p class="muted">${weeklyDue()?'ผ่านมาแล้ว 7 วันตั้งแต่ข้อสอบครั้งล่าสุด':'ถึงการสอบรอบถัดไป'}</p><a class="btn ${weeklyDue()?'primary':''}" href="#weekly">${weeklyDue()?'ทำข้อสอบสัปดาห์นี้':'ดูรายละเอียด'}</a>`
+      :`<div class="big">30 ข้อ</div><p class="muted">Grammar, Word form, ศัพท์, Part 6 และ Part 7</p><a class="btn primary" href="#placement">เริ่มวัดระดับ</a>`}</div>
+    <div class="card stack"><div class="row" style="gap:10px">${ico('book',32)}<span class="label">ข้อที่ต้องทบทวน</span></div><div class="big">${due}</div>
+      <p class="muted">${Object.keys(S.mist).length} ข้อในสมุดข้อผิดทั้งหมด ระบบจะเด้งกลับมาตามรอบ 1, 3, 7, 14 วัน</p><a class="btn" href="#review">ดูสมุดข้อผิด</a></div></div>
+  <div class="card stack"><h2>แผนสัปดาห์นี้</h2>
+    ${plan(hasP,dn,due)}</div>
+  <p class="muted" id="sync" style="font-size:13px"></p>`;
+  $('#chg').onclick=()=>{changing=true;pickT=S.target;renderAll()};
+}
+function plan(hasP,dn,due){
+  const wk=weakCats()[0];
+  const it=[[hasP,'วัดระดับครั้งแรก (30 ข้อ)'],[dn.n>0,'ฝึกประจำวันนี้ 10 ข้อ'],[!weeklyDue()&&hasP,'สอบรายสัปดาห์ให้ครบทุก 7 วัน'],[due===0,'ล้างข้อที่ถึงรอบทบทวน']];
+  return it.map(([d,t])=>`<div class="tick ${d?'done':''}"><b>${d?'✓':''}</b><span>${t}</span></div>`).join('')+(wk?`<div class="notice">หมวดที่ยังอ่อนที่สุดตอนนี้คือ <strong>${CAT[wk]}</strong> ควรทบทวนข้อผิดในหมวดนี้ก่อนฝึกข้อใหม่</div>`:'');
+}
+
+/* ----- intro screens ----- */
+function viewIntro(kind){
+  const meta={placement:['วัดระดับครั้งแรก','30 ข้อ · ไม่มีเฉลยระหว่างทำ · ตั้งเวลา 35 นาที','ทำให้สุดความสามารถโดยไม่เปิดพจนานุกรม ผลจะเป็นจุดเริ่มต้นสำหรับเทียบกับสัปดาห์ถัดไป'],
+    weekly:['สอบรายสัปดาห์','30 ข้อ · ไม่มีเฉลยระหว่างทำ · ตั้งเวลา 30 นาที','โจทย์ใหม่ที่ยังไม่เคยเจอ (ถ้ามี) เพื่อวัดความก้าวหน้าจริง'],
+    daily:['ฝึกประจำวัน','10 ข้อ · เฉลยทันทีหลังตอบทุกข้อ','ผสมข้อที่เคยผิดตามรอบทบทวน กับข้อใหม่']}[kind];
+  const hasP=S.attempts.some(a=>a.kind==='placement');
+  const ss=S.session&&S.session.kind===kind;
+  let extra='';
+  if(kind==='weekly'&&!hasP)extra=`<div class="notice warn">ยังไม่ได้วัดระดับครั้งแรก ควรทำ <a href="#placement">วัดระดับ</a> ก่อน เพื่อให้มีคะแนนตั้งต้นเทียบ</div>`;
+  if(kind==='weekly'&&hasP&&!weeklyDue())extra=`<div class="notice">ข้อสอบครั้งล่าสุดคือ ${lastTest().date} ครบรอบอีก ${7-diffDays(lastTest().date,dkey())} วัน ทำก่อนเวลาได้ แต่ผลจะเทียบรอบต่อรอบได้ดีที่สุดเมื่อห่างกัน 7 วัน</div>`;
+  if(kind==='placement'&&hasP)extra=`<div class="notice">เคยวัดระดับแล้วเมื่อ ${S.attempts.find(a=>a.kind==='placement').date} การวัดซ้ำจะนับเป็นอีกหนึ่งครั้งในกราฟ</div>`;
+  const last=S.attempts.filter(a=>a.kind===kind).slice(-1)[0];
+  app().innerHTML=`<div class="row" style="gap:16px;flex-wrap:nowrap">${ico({placement:'target',weekly:'cal',daily:'sun'}[kind],56)}<div class="stack" style="min-width:0"><span class="label">${kind}</span><h1>${meta[0]}</h1><p class="muted">${meta[1]}</p></div></div>
+  <div class="card stack"><p>${meta[2]}</p>${extra}
+    ${last?`<p class="muted">ครั้งล่าสุด ${last.date}: ถูก ${last.c}/${last.n} ข้อ${kind!=='daily'?` · ประมาณ ${last.total} คะแนน`:''}</p>`:''}
+    <div id="gen"></div>
+    <div class="row">${ss?`<button class="primary" id="resume">ทำต่อจากเดิม (ข้อ ${S.session.idx+1}/${S.session.ids.length})</button><button id="startnew">เริ่มชุดใหม่</button>`:`<button class="primary" id="start">เริ่มเลย</button>`}</div></div>
+  <div class="card stack"><h3>โจทย์ใหม่จาก Claude</h3><p class="muted">คลังโจทย์ในแอปมี ${BASE.length} ข้อ ตอนนี้ยังไม่เคยทำ ${allQ().filter(q=>!S.seen[q.id]).length} ข้อ เมื่อใกล้หมดให้ Claude สร้างข้อ Part 5 ใหม่เพิ่ม โดยเน้นหมวดที่คุณพลาดบ่อย (ใช้โควตา Claude ของบัญชีคุณ)</p>
+    <div class="row"><button id="genbtn">สร้างเพิ่ม 10 ข้อ</button><span class="muted" id="genst"></span></div></div>`;
+  const begin=()=>{const b=buildSet(kind);startSession(kind,b.ids);renderAll()};
+  const st=$('#start'),rs=$('#resume'),sn=$('#startnew');
+  if(st)st.onclick=()=>{const b=buildSet(kind);if(b.shortfall>0&&kind!=='placement'){const g=$('#gen');g.innerHTML=`<div class="notice warn">โจทย์ใหม่ที่ยังไม่เคยทำเหลือไม่พอสำหรับชุดนี้ (ขาดประมาณ ${b.shortfall} ข้อ) ข้อที่เคยทำแล้วจะวนมาซ้ำ<div class="row" style="margin-top:10px"><button id="g1" class="primary">ให้ Claude สร้างเพิ่มก่อน</button><button id="g2">ทำชุดนี้เลย</button></div></div>`;$('#g2').onclick=begin;$('#g1').onclick=()=>doGen(()=>begin());return}begin()};
+  if(rs)rs.onclick=()=>{view=kind;renderAll()};
+  if(sn)sn.onclick=()=>{S.session=null;saveLocal();const b=buildSet(kind);startSession(kind,b.ids);renderAll()};
+  $('#genbtn').onclick=()=>doGen();
+}
+async function doGen(after){
+  const st=$('#genst'),btn=$('#genbtn'),b1=$('#g1');if(btn)btn.disabled=true;if(b1)b1.disabled=true;
+  try{const n=await genAI(10,t=>{if(st)st.textContent=t});if(st)st.textContent=`เพิ่มโจทย์ใหม่ ${n} ข้อแล้ว`;if(btn)btn.disabled=false;if(after&&n>0)after()}
+  catch(e){const m={not_granted:'ยังไม่ได้อนุญาตให้แอปใช้ Claude',rate_limited:'ใช้บ่อยเกินไป รอสักครู่แล้วลองใหม่',invalid_json:'Claude ตอบรูปแบบไม่ถูกต้อง ลองกดอีกครั้ง',unavailable:'มุมมองนี้ใช้ Claude ไม่ได้ ใช้คลังโจทย์ในแอปไปก่อน',sampling_disabled:'บัญชีนี้ใช้ Claude ในหน้านี้ไม่ได้'}[e&&e.code]||'สร้างโจทย์ไม่สำเร็จ ลองใหม่อีกครั้ง';
+    if(st)st.textContent=m;if(btn){btn.disabled=false}if(b1)b1.disabled=false}
+}
+
+/* ----- quiz ----- */
+function viewQuiz(){
+  const ss=S.session,id=ss.ids[ss.idx],q=qById(id),test=ss.kind!=='daily',perm=ss.perm[id],n=ss.ids.length;
+  const pick=ss.ans[id],checked=!test&&ss.checked[id];
+  const pass=q.pid?BANK_PASSAGES[q.pid]:null;
+  const limit=ss.kind==='placement'?35*60:ss.kind==='weekly'?30*60:0;
+  app().innerHTML=`
+  <div class="qhead"><div class="row sp"><span class="label">${{placement:'วัดระดับ',weekly:'สอบรายสัปดาห์',daily:'ฝึกประจำวัน'}[ss.kind]} · ข้อ ${ss.idx+1}/${n}</span>
+    <span class="mono" id="timer">${limit?'':''}</span></div><div class="prog"><div style="width:${(ss.idx+(checked?1:0))/n*100}%"></div></div></div>
+  <div class="qsplit ${pass?'has-pass':''}">
+    ${pass?`<div class="pass"><span class="label">${esc(pass.title)}</span>\n\n${esc(pass.text).replace(/\((\d)\) -{6}/g,'<span class="blank">($1) ______</span>')}</div>`:''}
+    <div class="card qcard" style="min-width:0;--c:var(--c-${q.cat})"><span class="pill cat">${CAT[q.cat]}</span>${S.mist[id]&&!test?' <span class="pill warn">ทบทวน</span>':''}
+      <p class="qtext">${esc(q.q)}</p>
+      <div class="opts" role="group" aria-label="ตัวเลือก">${perm.map((oi,pos)=>{
+        let cls='';if(checked){if(oi===q.a)cls='right';else if(oi===pick)cls='wrong'}
+        return `<button class="opt ${cls}" data-oi="${oi}" aria-pressed="${pick===oi}" ${checked?'disabled':''}><span class="bub">${'ABCD'[pos]}</span><span>${esc(q.o[oi])}</span></button>`}).join('')}</div>
+      ${checked?`<div class="expl" style="margin-top:16px"><strong>${pick===q.a?'ถูกต้อง':'คำตอบที่ถูกคือ '+'ABCD'[perm.indexOf(q.a)]}</strong><br>${esc(q.e)}</div>`:''}
+      <div class="row sp" style="margin-top:18px">
+        ${test?`<button id="prev" ${ss.idx===0?'disabled':''}>ย้อนกลับ</button>`:'<span></span>'}
+        ${test?(ss.idx<n-1?`<button class="primary" id="next">ข้อถัดไป</button>`:`<button class="primary" id="submit">ส่งข้อสอบ</button>`)
+          :(!checked?`<button class="primary" id="check" ${pick==null?'disabled':''}>ตรวจคำตอบ</button>`:(ss.idx<n-1?`<button class="primary" id="next">ข้อถัดไป</button>`:`<button class="primary" id="submit">จบและดูผล</button>`))}
+      </div></div></div>
+  ${test?`<div class="card stack"><span class="label">แผนที่ข้อสอบ (${Object.keys(ss.ans).length}/${n} ตอบแล้ว)</span><div class="palette">${ss.ids.map((x,i)=>`<button data-i="${i}" class="${ss.ans[x]!=null?'ans':''} ${i===ss.idx?'cur':''}" aria-label="ข้อ ${i+1}">${i+1}</button>`).join('')}</div></div>`:''}
+  <div class="row"><button class="ghost" id="quit">ออกไปก่อน (เก็บความคืบหน้าไว้)</button></div>`;
+  app().querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ss.ans[id]=+b.dataset.oi;saveLocal();viewQuiz()});
+  const nx=$('#next'),pv=$('#prev'),ck=$('#check'),sb=$('#submit');
+  if(nx)nx.onclick=()=>{ss.idx++;saveLocal();viewQuiz();window.scrollTo(0,0)};
+  if(pv)pv.onclick=()=>{ss.idx--;saveLocal();viewQuiz();window.scrollTo(0,0)};
+  if(ck)ck.onclick=()=>{ss.checked[id]=1;saveLocal();viewQuiz()};
+  if(sb)sb.onclick=()=>{ if(test){const un=n-Object.keys(ss.ans).length;if(un>0&&!sb.dataset.sure){sb.dataset.sure=1;sb.textContent=`ยังไม่ตอบ ${un} ข้อ กดอีกครั้งเพื่อส่ง`;return}}submit()};
+  app().querySelectorAll('.palette button').forEach(b=>b.onclick=()=>{ss.idx=+b.dataset.i;saveLocal();viewQuiz();window.scrollTo(0,0)});
+  $('#quit').onclick=()=>{saveLocal();go('home')};
+  if(limit){const tick=()=>{const left=limit-Math.floor((Date.now()-ss.start)/1000),el=$('#timer');if(!el)return;
+    if(left<=0){clearInterval(timerH);submit();return}
+    el.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');el.style.color=left<300?'var(--bad)':'var(--muted)'};tick();timerH=setInterval(tick,1000)}
+}
+function submit(){clearInterval(timerH);const r=finishSession();if(!r)return;result=r;renderAll();window.scrollTo(0,0)}
+
+/* ----- result ----- */
+function bars(cat){
+  return `<div class="bars">${CATS.filter(k=>cat[k]&&cat[k][1]).map(k=>{const [c,t]=cat[k],p=Math.round(c/t*100);
+    return `<div class="bar2" style="--c:var(--c-${k})"><span>${CAT[k]}</span><div class="t"><i class="${p<60?'low':''}" style="width:${p}%"></i></div><span class="mono">${c}/${t}</span></div>`}).join('')}</div>`;
+}
+function viewResult(){
+  const {at,g,ids,ans,perm}=result,test=at.kind!=='daily',lv=levelOf(at.total);
+  const prev=tests().slice(0,-1).slice(-1)[0],delta=test&&prev&&at!==prev?at.total-prev.total:null;
+  const weak=CATS.filter(k=>g.cat[k][1]>=2).sort((a,b)=>g.cat[a][0]/g.cat[a][1]-g.cat[b][0]/g.cat[b][1])[0];
+  app().innerHTML=`<div class="stack"><span class="label">ผล${{placement:'วัดระดับ',weekly:'สอบรายสัปดาห์',daily:'ฝึกประจำวัน'}[at.kind]}</span>
+    <h1>ถูก ${g.c} จาก ${g.n} ข้อ</h1></div>
+  ${(()=>{const m=test&&at.total>=S.target[0]?'ถึงเป้า '+tgtLabel()+' แล้ว รักษาระดับด้วยการฝึกทุกวัน':(delta!=null&&delta>0?'คะแนนเพิ่มขึ้น '+delta+' จากครั้งก่อน ไปต่อเลย':(!test&&g.pct>=.8?'ฝึกวันนี้ได้ดีมาก':''));return m?`<div class="banner"><span class="conf" aria-hidden="true"><i></i><i></i><i></i></span><span>${m}</span></div>`:''})()}
+  ${test?`<div class="card">${gauge(at.total)}<div class="row sp"><div><span class="label">คะแนนรวมโดยประมาณ</span><div class="big">${at.total}</div></div>
+    <div><span class="label">Reading โดยประมาณ</span><div class="big">${at.reading}</div></div>
+    ${delta!=null?`<div><span class="label">เทียบครั้งก่อน</span><div class="big" style="color:${delta>=0?'var(--good)':'var(--bad)'}">${delta>=0?'+':''}${delta}</div></div>`:''}</div>
+    <p style="margin-top:12px"><span class="pill ${at.total>=S.target[0]?'good':'warn'}">${lv.k}</span> <span class="muted">${lv.d}</span></p>
+    <p class="muted" style="font-size:13px;margin-top:8px">ตัวเลขนี้เป็นการประมาณจากข้อสอบ Reading 30 ข้อ (ข้อยากให้น้ำหนักมากกว่า) ไม่ใช่คะแนน TOEIC จริง ใช้เทียบความก้าวหน้าของตัวเองเป็นหลัก</p></div>`:''}
+  <div class="card stack"><h2>แยกตามหมวด</h2>${bars(g.cat)}${weak?`<div class="notice">หมวดที่ควรเน้น: <strong>${CAT[weak]}</strong> ข้อที่ผิดถูกใส่ในสมุดข้อผิดแล้ว จะกลับมาให้ทบทวนตามรอบ</div>`:''}</div>
+  <div class="card stack"><h2>เฉลยทุกข้อ</h2><ul class="list">${ids.map((id,i)=>{const q=qById(id),ok=ans[id]===q.a,p=perm[id];
+    return `<li><div class="row"><span class="mono muted">${i+1}.</span><span class="pill ${ok?'good':'bad'}">${ok?'ถูก':ans[id]==null?'ไม่ได้ตอบ':'ผิด'}</span></div>
+    <div>${esc(q.q)}</div><div class="muted">เฉลย: <strong style="color:var(--ink)">${esc(q.o[q.a])}</strong>${!ok&&ans[id]!=null?` · คุณตอบ: ${esc(q.o[ans[id]])}`:''}</div><div class="expl">${esc(q.e)}</div></li>`}).join('')}</ul></div>
+  <div class="row"><a class="btn primary" href="#home" id="rh">กลับหน้าภาพรวม</a><a class="btn" href="#progress">ดูกราฟความก้าวหน้า</a></div>`;
+  $('#rh').onclick=e=>{e.preventDefault();result=null;go('home')};
+}
+
+/* ----- review (mistake notebook) ----- */
+function viewReview(){
+  const ids=Object.keys(S.mist).filter(qById),t=dkey();
+  const due=ids.filter(i=>S.mist[i].due<=t);
+  app().innerHTML=`<div class="stack"><span class="label">สมุดข้อผิด</span><h1>${ids.length} ข้อที่ต้องจำให้ได้</h1><p class="muted">ถึงรอบทบทวนแล้ว ${due.length} ข้อ ตอบถูกต่อเนื่อง 4 รอบ (1, 3, 7, 14 วัน) ข้อนั้นจะออกจากสมุด</p></div>
+  ${ids.length?`<div class="card stack"><ul class="list">${ids.sort((a,b)=>S.mist[a].due.localeCompare(S.mist[b].due)).map(id=>{const q=qById(id),m=S.mist[id];
+    return `<li><div class="row"><span class="pill cat" style="--c:var(--c-${q.cat})">${CAT[q.cat]}</span><span class="pill ${m.due<=t?'warn':''}">${m.due<=t?'ถึงรอบแล้ว':'ทบทวน '+m.due}</span></div><div>${esc(q.q)}</div>${q.pid?`<div class="muted" style="font-size:13px">จากบทอ่าน: ${esc(BANK_PASSAGES[q.pid].title)}</div>`:''}<div class="muted">เฉลย: <strong style="color:var(--ink)">${esc(q.o[q.a])}</strong></div><div class="expl">${esc(q.e)}</div></li>`}).join('')}</ul></div>`
+  :`<div class="card empty">${ico('book',56)}<p>ยังไม่มีข้อผิดในสมุด ทำข้อสอบหรือฝึกประจำวัน ข้อที่ตอบผิดจะมาอยู่ที่นี่</p></div>`}
+  ${due.length?`<div class="row"><a class="btn primary" href="#daily">ทบทวนผ่านชุดฝึกวันนี้</a></div>`:''}`;
+}
+
+/* ----- progress ----- */
+function chartSvg(){
+  const ts=tests();if(!ts.length)return `<p class="muted">ยังไม่มีข้อมูล ทำข้อสอบวัดระดับก่อนเพื่อเริ่มกราฟ</p>`;
+  const W_=640,H=260,L=44,R=16,T=14,B=34,lo=Math.min(300,...ts.map(t=>t.total))-0,hi=990;
+  const y=v=>T+(H-T-B)*(1-(v-lo)/(hi-lo)),x=i=>ts.length===1?(L+W_-R)/2:L+(W_-L-R)*i/(ts.length-1);
+  const ticks=[lo,500,750,990].filter((v,i,a)=>a.indexOf(v)===i).sort((a,b)=>a-b);
+  const lbl=ts.length>8?(i=>i%Math.ceil(ts.length/8)===0):()=>true;
+  return `<svg viewBox="0 0 ${W_} ${H}" width="100%" style="min-width:420px" role="img" aria-label="กราฟคะแนนประมาณรายครั้ง เทียบเป้า ${tgtLabel()}">
+   <rect class="bandr" x="${L}" y="${y(S.target[1])}" width="${W_-L-R}" height="${Math.max(4,y(S.target[0])-y(S.target[1]))}"/>
+   ${ticks.map(v=>`<line class="gl" x1="${L}" x2="${W_-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`).join('')}
+   <text x="${W_-R}" y="${y(S.target[1])-5}" text-anchor="end">เป้า ${tgtLabel()}</text>
+   <polyline class="ln" points="${ts.map((t,i)=>x(i)+','+y(t.total)).join(' ')}"/>
+   ${ts.map((t,i)=>`<circle class="pt" cx="${x(i)}" cy="${y(t.total)}" r="5"/><text x="${x(i)}" y="${y(t.total)-11}" text-anchor="middle">${t.total}</text>${lbl(i)?`<text x="${x(i)}" y="${H-12}" text-anchor="middle">${t.kind==='placement'?'เริ่ม':'W'+i}</text>`:''}`).join('')}
+  </svg>`;
+}
+function viewProgress(){
+  const ts=tests(),cat={};CATS.forEach(k=>cat[k]=[0,0]);
+  Object.keys(S.seen).forEach(id=>{const q=qById(id);if(q){cat[q.cat][0]+=S.seen[id].c;cat[q.cat][1]+=S.seen[id].n}});
+  const days=[];for(let i=34;i>=0;i--){const k=addDays(dkey(),-i),n=(S.daily[k]||{}).n||0;days.push([k,n])}
+  const tot=Object.values(S.daily).reduce((a,d)=>a+d.n,0),act=Object.values(S.daily).filter(d=>d.n).length;
+  app().innerHTML=`<div class="stack"><span class="label">ความก้าวหน้า</span><h1>${ts.length?'คะแนนประมาณจาก '+ts[0].total+' เป็น '+ts[ts.length-1].total:'ยังไม่มีข้อมูล'}</h1></div>
+  <div class="card stack"><h2>คะแนนประมาณรายครั้ง</h2><div class="chart">${chartSvg()}</div>
+   ${ts.length?`<table style="border-collapse:collapse;width:100%;font-size:14px"><thead><tr class="muted" style="text-align:left"><th>วันที่</th><th>ชนิด</th><th>ถูก</th><th>รวม</th></tr></thead><tbody>${ts.slice().reverse().map(t=>`<tr style="border-top:1px solid var(--line)"><td class="mono">${t.date}</td><td>${t.kind==='placement'?'วัดระดับ':'รายสัปดาห์'}</td><td class="mono">${t.c}/${t.n}</td><td class="mono"><strong>${t.total}</strong></td></tr>`).join('')}</tbody></table>`:''}</div>
+  <div class="card stack"><h2>ความแม่นยำสะสมแต่ละหมวด</h2>${bars(cat)}<p class="muted" style="font-size:13px">รวมทุกครั้งที่ตอบ ทั้งฝึกประจำวันและข้อสอบ</p></div>
+  <div class="card stack"><h2>วันที่ฝึก 5 สัปดาห์ล่าสุด</h2><div class="heat" role="img" aria-label="ปฏิทินการฝึก">${days.map(([k,n])=>`<i class="${n>=10?'l3':n>=5?'l2':n>0?'l1':''}" title="${k}: ${n} ข้อ"></i>`).join('')}</div>
+   <p class="muted">ฝึกแล้ว ${act} วัน รวม ${tot} ข้อ · ต่อเนื่องล่าสุด ${streak()} วัน</p></div>
+  <div class="card stack"><h2>เป้าหมายคะแนน</h2>
+   <div class="row" id="tgts">${TARGETS.map((t,k)=>`<button class="tgb" data-k="${k}" aria-pressed="${t[0]===S.target[0]&&t[1]===S.target[1]}">${tgtLabel(t)}</button>`).join('')}</div></div>
+  <div class="card stack"><h2>ข้อมูลของคุณ</h2>
+   <p class="muted">ข้อมูลเก็บ${dbState==='synced'?'ในบัญชีของคุณและในเครื่องนี้ แต่ละคนเห็นเฉพาะความคืบหน้าของตัวเอง':'ในเครื่องนี้ (ถ้าเปิดด้วยบัญชีที่ลงชื่อเข้าใช้และมีสิทธิ์บันทึก จะซิงก์ข้ามอุปกรณ์ได้)'}</p>
+   <div class="row"><button id="rst">ล้างความคืบหน้าทั้งหมด</button></div></div><p class="muted" id="sync" style="font-size:13px"></p>`;
+  app().querySelectorAll('.tgb').forEach(b=>b.onclick=()=>{S.target=TARGETS[+b.dataset.k].slice(0,2);S.targetSet=true;commit();viewProgress()});
+  $('#rst').onclick=function(){if(!this.dataset.s){this.dataset.s=1;this.textContent='กดอีกครั้งเพื่อยืนยันการล้างข้อมูล';return}
+    S=fresh();S.updated=Date.now();saveLocal();pushDb();go('home')};
+}
+
+/* ----- onboarding: choose target ----- */
+function viewOnboard(){
+  if(!pickT)pickT=S.target;
+  const first=!S.targetSet;
+  app().innerHTML=`<div class="stack"><span class="label">${first?'ขั้นแรก':'เปลี่ยนเป้าหมาย'}</span><h1>เลือกเป้าหมายคะแนน TOEIC</h1>
+   <p class="muted">ใช้เทียบกับคะแนนประมาณในกราฟ แผนฝึก และระดับความยากของโจทย์ใหม่ที่ Claude สร้าง เปลี่ยนได้ทุกเมื่อ</p></div>
+  <div class="grid" id="tgg">${TARGETS.map((t,k)=>`<button class="tg" style="--c:${TCOL[k]}" data-k="${k}" aria-pressed="${t[0]===pickT[0]&&t[1]===pickT[1]}"><span class="steps" aria-hidden="true">${[0,1,2,3,4,5].map(i=>`<i class="${i<=k?'on':''}" style="height:${6+i*3}px"></i>`).join('')}</span><span class="big" style="font-size:30px">${tgtLabel(t)}</span><span class="muted">${t[2]}</span></button>`).join('')}</div>
+  <div class="row"><button class="primary" id="okt">${first?'เริ่มใช้งาน':'บันทึกเป้าหมาย'}</button>${first?'':'<button id="cnt">ยกเลิก</button>'}</div>`;
+  app().querySelectorAll('.tg').forEach(b=>b.onclick=()=>{pickT=TARGETS[+b.dataset.k].slice(0,2);app().querySelectorAll('.tg').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  $('#okt').onclick=()=>{S.target=pickT;S.targetSet=true;changing=false;pickT=null;commit();renderAll()};
+  const cn=$('#cnt');if(cn)cn.onclick=()=>{changing=false;pickT=null;renderAll()};
+}
+
+/* ----- boot ----- */
+window.addEventListener('hashchange',route);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)saveLocal()});
+route();initDb();
+</script>
+
+</body></html>
